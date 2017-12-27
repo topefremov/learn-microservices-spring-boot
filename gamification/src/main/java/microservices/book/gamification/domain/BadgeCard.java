@@ -28,7 +28,7 @@ public final class BadgeCard {
 	private final Long badgeId;
 	
 	private final Long userId;
-	private final long bageTimestamp;
+	private final long badgeTimestamp;
 	private final Badge badge;
 	
 	// Empty constructor for JSON/JPA

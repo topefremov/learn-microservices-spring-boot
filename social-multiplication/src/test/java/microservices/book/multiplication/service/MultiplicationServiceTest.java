@@ -9,6 +9,7 @@ import microservices.book.multiplication.repository.MultiplicationResultAttemptR
 import microservices.book.multiplication.repository.UserRepository;
 
 import org.assertj.core.util.Lists;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,16 +28,16 @@ import java.util.Optional;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class MultiplicationServiceTest {
-	
-	@MockBean 
+
+	@MockBean
 	MultiplicationResultAttemptRepository attemptRepository;
-	
+
 	@MockBean
 	UserRepository userRepository;
-	
+
 	@MockBean
 	EventDispatcher eventDispatcher;
-	
+
 	@Autowired
 	private MultiplicationService multiplicationService;
 
@@ -46,9 +47,10 @@ public class MultiplicationServiceTest {
 		Multiplication multiplication = new Multiplication(50, 60);
 		User user = new User("john_doe");
 		MultiplicationResultAttempt attempt = new MultiplicationResultAttempt(user, multiplication, 3000, false);
-        MultiplicationResultAttempt verifiedAttempt = new MultiplicationResultAttempt(user, multiplication, 3000, true);
-        MultiplicationSolvedEvent event = new MultiplicationSolvedEvent(attempt.getId(), attempt.getUser().getId(), true);
-		
+		MultiplicationResultAttempt verifiedAttempt = new MultiplicationResultAttempt(user, multiplication, 3000, true);
+		MultiplicationSolvedEvent event = new MultiplicationSolvedEvent(attempt.getId(), attempt.getUser().getId(),
+				true);
+
 		given(userRepository.findByAlias("john_doe")).willReturn(Optional.empty());
 
 		// when
@@ -67,9 +69,10 @@ public class MultiplicationServiceTest {
 		User user = new User("john_doe");
 		MultiplicationResultAttempt attempt = new MultiplicationResultAttempt(user, multiplication, 3010, false);
 		MultiplicationResultAttempt checkedAttempt = new MultiplicationResultAttempt(user, multiplication, 3010, false);
-		MultiplicationSolvedEvent event = new MultiplicationSolvedEvent(attempt.getId(), attempt.getUser().getId(), false);
+		MultiplicationSolvedEvent event = new MultiplicationSolvedEvent(attempt.getId(), attempt.getUser().getId(),
+				false);
 		given(userRepository.findByAlias("john_doe")).willReturn(Optional.empty());
-		
+
 		System.out.println(event.toString());
 
 		// when
@@ -80,11 +83,11 @@ public class MultiplicationServiceTest {
 		verify(attemptRepository).save(attempt);
 		verify(eventDispatcher).send(eq(event));
 	}
-	
+
 	@Test
 	public void retrieveStatsTest() {
 		// given
-		
+
 		Multiplication multiplication = new Multiplication(50, 60);
 		User user = new User("john_doe");
 		MultiplicationResultAttempt attempt1 = new MultiplicationResultAttempt(user, multiplication, 3010, false);
@@ -92,12 +95,28 @@ public class MultiplicationServiceTest {
 		List<MultiplicationResultAttempt> latestAttempts = Lists.newArrayList(attempt1, attempt2);
 		given(userRepository.findByAlias("john_doe")).willReturn(Optional.empty());
 		given(attemptRepository.findTop5ByUserAliasOrderByIdDesc("john_doe")).willReturn(latestAttempts);
-		
+
 		// when
-		
+
 		List<MultiplicationResultAttempt> latestAttemptsResult = multiplicationService.getStatsForUser("john_doe");
-		
+
 		// then
 		assertThat(latestAttemptsResult).isEqualTo(latestAttempts);
+	}
+
+	@Test
+	public void getResultByIdTest() {
+		// given
+		Multiplication multiplication = new Multiplication(50, 60);
+		User user = new User("john_doe");
+		MultiplicationResultAttempt expectedAttempt = new MultiplicationResultAttempt(user, multiplication, 3000, true);
+		Long resultid = 12L;
+		given(attemptRepository.findOne(resultid)).willReturn(expectedAttempt);
+		
+		// when
+		MultiplicationResultAttempt foundAttempt = multiplicationService.getResultById(resultid);
+
+		// then
+		assertThat(foundAttempt).isEqualTo(expectedAttempt);
 	}
 }
