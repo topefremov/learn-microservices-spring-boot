@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import microservices.book.gamification.client.MultiplicationResultAttemptClient;
+import microservices.book.gamification.client.dto.MultiplicationResultAttempt;
 import microservices.book.gamification.domain.Badge;
 import microservices.book.gamification.domain.BadgeCard;
 import microservices.book.gamification.domain.GameStats;
@@ -21,6 +24,7 @@ import microservices.book.gamification.repository.ScoreCardRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.anyLong;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -34,6 +38,15 @@ public class GameServiceTest {
 
 	@MockBean
 	ScoreCardRepository scoreCardRepository;
+	
+	@MockBean MultiplicationResultAttemptClient multiplicationResultAttemptClient;
+	
+	@Before
+	public void setUp() {
+		MultiplicationResultAttempt multiplicationResultAttempt = new MultiplicationResultAttempt("sasha", 23, 13, 25, true);
+		given(multiplicationResultAttemptClient.retrieveMultiplicationResultAttemptById(anyLong()))
+			.willReturn(multiplicationResultAttempt);
+	}
 
 	@Test
 	public void returnGameStatsWithFirstWonBadge() {
@@ -139,6 +152,24 @@ public class GameServiceTest {
 		// then
 		assertThat(gameStats.getScore()).isEqualTo(ScoreCard.DEFAULT_SCORE);
 		assertThat(gameStats.getBadges()).isEqualTo(badgesAfterProcessing);
+	}
+	
+	@Test
+	public void returnGameStatsWithLuckyBage() {
+		// given
+		Long userId = 1L;
+		Long attemptId = 25L;
+		boolean correct = true;
+		int totalScore = 10;
+		MultiplicationResultAttempt multiplicationResultAttempt = new MultiplicationResultAttempt("sasha", 42, 23, 25, correct);
+		GameStats extectedGameStats = new GameStats(userId, totalScore, Arrays.asList(Badge.LUCKY_NUMBER));
+		given(multiplicationResultAttemptClient.retrieveMultiplicationResultAttemptById(attemptId))
+			.willReturn(multiplicationResultAttempt);
+		// when
+		GameStats gameStats = gameService.newAttemptForUser(userId, attemptId, correct);
+		
+		// then
+		assertThat(gameStats).isEqualTo(extectedGameStats);
 	}
 
 }

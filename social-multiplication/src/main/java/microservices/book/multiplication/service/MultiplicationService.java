@@ -4,7 +4,6 @@ import java.util.List;
 
 import microservices.book.multiplication.domain.Multiplication;
 import microservices.book.multiplication.domain.MultiplicationResultAttempt;
-import microservices.book.multiplication.domain.User;
 
 public interface MultiplicationService {
 	/**

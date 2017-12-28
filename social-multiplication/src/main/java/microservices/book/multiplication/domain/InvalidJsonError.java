@@ -1,7 +1,5 @@
 package microservices.book.multiplication.domain;
 
-import javax.persistence.Entity;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -11,9 +9,13 @@ import lombok.ToString;
 @Getter
 @ToString
 @EqualsAndHashCode
-public class JsonInvalidError {
+public class InvalidJsonError {
 	private final long timestamp;
 	private final int status;
 	private final String error;
 	private final String message;
+	
+	public InvalidJsonError(int status, String error, String message) {
+		this(System.currentTimeMillis(), status, error, message);
+	}
 }

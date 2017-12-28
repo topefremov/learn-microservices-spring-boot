@@ -9,7 +9,6 @@ import microservices.book.multiplication.repository.MultiplicationResultAttemptR
 import microservices.book.multiplication.repository.UserRepository;
 
 import org.assertj.core.util.Lists;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +67,6 @@ public class MultiplicationServiceTest {
 		Multiplication multiplication = new Multiplication(50, 60);
 		User user = new User("john_doe");
 		MultiplicationResultAttempt attempt = new MultiplicationResultAttempt(user, multiplication, 3010, false);
-		MultiplicationResultAttempt checkedAttempt = new MultiplicationResultAttempt(user, multiplication, 3010, false);
 		MultiplicationSolvedEvent event = new MultiplicationSolvedEvent(attempt.getId(), attempt.getUser().getId(),
 				false);
 		given(userRepository.findByAlias("john_doe")).willReturn(Optional.empty());

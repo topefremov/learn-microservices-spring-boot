@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
+import microservices.book.gamification.client.MultiplicationResultAttemptClient;
+import microservices.book.gamification.client.dto.MultiplicationResultAttempt;
 import microservices.book.gamification.domain.Badge;
 import microservices.book.gamification.domain.BadgeCard;
 import microservices.book.gamification.domain.GameStats;
@@ -25,15 +27,21 @@ import microservices.book.gamification.repository.ScoreCardRepository;
 @Slf4j
 public class GameServiceImpl implements GameService {
 	
+	public static final int LUCKY_NUMBER = 42;
+	
 	private Map<Integer, Badge> badgesBasedOnScores;
 	
 	private ScoreCardRepository scoreCardRepository;
 	private BadgeCardRepository badgeCardRepository;
+	
+	private MultiplicationResultAttemptClient multiplicationResultAttemptClient;
 
 	@Autowired
-	GameServiceImpl(ScoreCardRepository scoreCardRepository, BadgeCardRepository badgeCardRepository) {
+	GameServiceImpl(ScoreCardRepository scoreCardRepository, BadgeCardRepository badgeCardRepository, 
+			MultiplicationResultAttemptClient multiplicationResultAttemptClient) {
 		this.scoreCardRepository = scoreCardRepository;
 		this.badgeCardRepository = badgeCardRepository;
+		this.multiplicationResultAttemptClient = multiplicationResultAttemptClient;
 	}
 	
 	@PostConstruct
@@ -77,10 +85,21 @@ public class GameServiceImpl implements GameService {
 					scoreThreshold), totalScore, scoreThreshold, userId)
 			.ifPresent(badgeCards::add);	
 		}
-			
+		
+		// FIRST_WON badge
 		if (scoreCardList.size() == 1 && !containsBadge(badgeCardList, Badge.FIRST_WON)) {
-			BadgeCard firstWonBadge = giveBadgeToUser(Badge.FIRST_WON, userId);
-			badgeCards.add(firstWonBadge);
+			BadgeCard firstWonBadgeCard = giveBadgeToUser(Badge.FIRST_WON, userId);
+			badgeCards.add(firstWonBadgeCard);
+		}
+		
+		// LUCKY_NUMBER badge
+		MultiplicationResultAttempt resultAttempt = multiplicationResultAttemptClient
+				.retrieveMultiplicationResultAttemptById(attemptId);
+		if((!containsBadge(badgeCardList, Badge.LUCKY_NUMBER)) && 
+				(resultAttempt.getMultiplicationFactorA() == LUCKY_NUMBER || 
+				resultAttempt.getMultiplicationFactorB() == LUCKY_NUMBER)) {
+			BadgeCard luckyNumberBadgeCard = giveBadgeToUser(Badge.LUCKY_NUMBER, userId);
+			badgeCards.add(luckyNumberBadgeCard);
 		}
 		return badgeCards;
 	}
