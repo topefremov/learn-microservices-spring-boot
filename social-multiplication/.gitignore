@@ -20,5 +20,8 @@ nbproject/private/
 build/
 nbbuild/
 dist/
+bin/
+target/
+transaction-logs/
 nbdist/
 .nb-gradle/
